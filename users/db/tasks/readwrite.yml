@@ -1,0 +1,91 @@
+#------------------------------------------------------------------------------
+# ReadWrite
+#------------------------------------------------------------------------------
+# CREATE ROLE readwrite;
+# GRANT CONNECT ON DATABASE therabody TO readwrite;
+# GRANT USAGE ON SCHEMA public TO readwrite;
+# GRANT SELECT, USAGE ON ALL SEQUENCES IN SCHEMA public TO readwrite;
+# GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO readwrite;
+# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO readwrite;
+---
+- name: Readwrite | Create role
+  community.postgresql.postgresql_user:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    user: readwrite
+    role_attr_flags: NOLOGIN
+    priv: CONNECT
+    no_password_changes: yes
+    state: present
+
+- name: Readwrite | Grant Usage on schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    objs: "{{ DB_SCHEMA }}"
+    privs: USAGE
+    type: schema
+    roles: readwrite
+    grant_option: yes
+    state: present
+
+- name: Readwrite | Grant SELECT,INSERT,UPDATE,DELETE on all Tables in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT,INSERT,UPDATE,DELETE
+    type: table
+    objs: ALL_IN_SCHEMA
+    roles: readwrite
+    grant_option: yes
+    state: present
+
+- name: Readwrite | Grant SELECT,USAGE on all Sequence in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT,USAGE
+    type: sequence
+    objs: ALL_IN_SCHEMA
+    roles: readwrite
+    grant_option: yes
+    state: present
+
+#ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+- name: Readwrite | ALTER DEFAULT PRIVILEGES ON DATABASE on tables in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT,INSERT,UPDATE,DELETE
+    objs: TABLES
+    type: default_privs
+    role: readwrite
+    grant_option: yes
+    state: present
+
+- name: Readwrite | ALTER DEFAULT PRIVILEGES ON DATABASE on sequences in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT,USAGE
+    objs: SEQUENCES
+    type: default_privs
+    role: readwrite
+    grant_option: yes
+    state: present

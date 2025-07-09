@@ -1,0 +1,29 @@
+# ./vars/dev.yml
+
+# list of database users to be added
+users:
+  - user: satyam.dudhat
+    password: 1h5wri211M4g6bq
+  
+  - user: raj.navadiya
+    password: 1h5wri212M4g6bq
+
+  - user: chirag.sorathiya
+    password: 1h5wri213M4g6bq
+  
+  - user: kaushik.savaliya
+    password: 1h5wri214M4g6bq
+
+# provide readonly role to users
+readonly_users:
+
+# provide readwrite role to users
+readwrite_users:
+  - satyam.dudhat
+  - raj.navadiya
+  - chirag.sorathiya
+  - kaushik.savaliya
+  
+
+# list of users to be deleted
+remove_users:

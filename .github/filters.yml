@@ -1,0 +1,12 @@
+# Terraform scan paths
+terraform_scan:
+  - "infrastructure/modules/**"
+  - "infrastructure/stack/**"
+  - ".github/workflows/dev.yml"
+
+# Infra paths
+infra:
+  - "infrastructure/**"
+  - ".github/**"
+  - "Makefile"
+  - ".terra*"

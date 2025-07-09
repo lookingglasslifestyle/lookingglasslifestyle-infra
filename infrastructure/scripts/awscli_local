@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+ROLENAME=$(echo "$1" | awk -F "=" '{print $1}')
+ACC_ID=$(echo "$2" | awk -F "=" '{print $1}')
+
+### Configure base profile
+aws configure set sso_start_url $_AWS_SSO_URL --profile $_AWS_PROFILE
+aws configure set sso_region $_AWS_REGION --profile $_AWS_PROFILE
+aws configure set sso_role_name $ROLENAME --profile $_AWS_PROFILE
+aws configure set sso_account_id $ACC_ID --profile $_AWS_PROFILE
+aws configure set region $_AWS_REGION --profile $_AWS_PROFILE
+aws configure set output json --profile $_AWS_PROFILE
+aws configure set cli_follow_urlparam true --profile $_AWS_PROFILE

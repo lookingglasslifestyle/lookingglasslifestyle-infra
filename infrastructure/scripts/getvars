@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+SSM_PATH=$(echo "$1" | awk -F "=" '{print $1}')
+
+aws --profile "$_AWS_PROFILE" \
+    --region "$_AWS_REGION" \
+    ssm get-parameters-by-path \
+    --path "$SSM_PATH" \
+    --with-decryption \
+    --query "Parameters[*].[Name,Value]" \
+    --output text \
+    | sed "s~$SSM_PATH/~""~g" \
+    | sed "s/[[:blank:]]/=/g"

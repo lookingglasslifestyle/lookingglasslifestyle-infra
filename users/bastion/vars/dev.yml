@@ -1,0 +1,13 @@
+users:
+  - satyam.dudhat
+  - raj.navadiya
+  - chirag.sorathiya
+  - kaushik.savaliya
+
+sudo_users:
+  - satyam.dudhat
+  - chirag.sorathiya
+
+sudo_group: admin
+
+remove_users:

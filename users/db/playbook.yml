@@ -1,0 +1,84 @@
+---
+- name: Prepare host
+  hosts: all
+  gather_facts: false
+  tasks:
+    # psycopg2 needed for Postgresql operations
+    - name: Install python packages
+      pip:
+        name: psycopg2-binary
+        extra_args: --user
+        executable: pip3
+
+- name: Manage Postgresql roles, users and permissions
+  hosts: all
+  gather_facts: false
+  vars:
+    DB_SCHEMA: public
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    #Commnting to save time because it is very less frequently changed
+    - name: Readonly role
+      include_tasks: tasks/readonly.yml
+
+    - name: Readwrite role
+      include_tasks: tasks/readwrite.yml
+
+    - include_vars: vars/{{ env }}.yml
+
+    - name: Create Postgresql users
+      no_log: true
+      postgresql_user:
+        login_host: "{{ DB_HOST }}"
+        login_user: "{{ DB_USER }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_db: "{{ DB_NAME }}"
+        name: "{{ item.user }}"
+        password: "{{ item.password }}"
+        no_password_changes: yes # some systems (such as AWS RDS), pg_authid is not accessible, thus, the module cannot compare the current and desired password. In this case, the module assumes that the passwords are different and changes it reporting that the state has been changed. To skip all password related checks for existing users, use no_password_changes=yes.
+        state: present
+      with_items:
+        "{{ users }}"
+
+    - name: Grant Readonly access to users
+      no_log: true
+      postgresql_membership:
+        login_host: "{{ DB_HOST }}"
+        login_user: "{{ DB_USER }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_db: "{{ DB_NAME }}"
+        group: readonly
+        target_roles: "{{ item }}"
+        state: present
+      with_items:
+        "{{ readonly_users if readonly_users is iterable else [] }}"
+
+    - name: Grant Readwrite access to users
+      no_log: true
+      postgresql_membership:
+        login_host: "{{ DB_HOST }}"
+        login_user: "{{ DB_USER }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_db: "{{ DB_NAME }}"
+        group: readwrite
+        target_roles: "{{ item }}"
+        state: present
+      with_items:
+        "{{ readwrite_users if readwrite_users is iterable else [] }}"
+
+    # - name: hospitality_api_env granting access of DB to Readonly
+    #   include_tasks: tasks/api-to-readonly.yml
+    
+    # - name: hospitality_api_env granting access of DB to Readwrite
+    #   include_tasks: tasks/api-to-readwrite.yml
+
+    - name: Remove Postgresql users
+      postgresql_user:
+        login_host: "{{ DB_HOST }}"
+        login_user: "{{ DB_USER }}"
+        login_password: "{{ DB_PASSWORD }}"
+        login_db: "{{ DB_NAME }}"
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        "{{ remove_users if remove_users is iterable else [] }}"
