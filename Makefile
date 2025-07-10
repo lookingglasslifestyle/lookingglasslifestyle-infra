@@ -21,7 +21,7 @@ TF_VAR_aws_region=$(_AWS_REGION)
 TF_VAR_tf_bucket=$(TF_VAR_prefix)-terraform
 TF_VAR_ssm_prefix=/$(_PROJECT)/$(_ENV)
 
-## login into AWS SSO for AWS CLI
+## login into AWS
 awscli-configure:
 	@aws configure --profile $(TF_VAR_aws_profile)
 	

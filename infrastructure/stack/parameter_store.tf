@@ -35,7 +35,7 @@ module "ssm_params" {
     "rds/default" = {
       db_username       = aws_db_instance.postgresql.username,
       db_password       = aws_db_instance.postgresql.password,
-      endpoint          = aws_db_instance.postgresql.endpoint,
+      endpoint          = split(":", aws_db_instance.postgresql.endpoint)[0],
       port              = aws_db_instance.postgresql.port,
       security_group_id = module.security_group_rds_postgresql.id
     },

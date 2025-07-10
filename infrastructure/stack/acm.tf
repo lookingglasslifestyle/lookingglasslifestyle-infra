@@ -2,7 +2,7 @@
 # stack/acm.tf #
 ################
 
-# This ACM certificate is used for Application Load Balancer (ALB) and CloudFront
+# This ACM certificate is used for Application Load Balancer (ALB)
 module "acm" {
   source = "git::https://github.com/TechHoldingLLC/terraform-aws-acm.git?ref=v1.1.1"
 
