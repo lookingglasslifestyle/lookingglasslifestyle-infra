@@ -1,0 +1,91 @@
+#------------------------------------------------------------------------------
+# Readonly
+#------------------------------------------------------------------------------
+# CREATE ROLE readonly;
+# GRANT CONNECT ON DATABASE therabody TO readonly;
+# GRANT USAGE ON SCHEMA public TO readonly;
+# GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
+# GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO readonly;
+# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+---
+- name: Readonly | Create role
+  community.postgresql.postgresql_user:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    user: readonly
+    role_attr_flags: NOLOGIN
+    priv: CONNECT
+    no_password_changes: yes
+    state: present
+
+- name: Readonly | Grant Usage on schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    objs: "{{ DB_SCHEMA }}"
+    privs: USAGE
+    type: schema
+    roles: readonly
+    grant_option: yes
+    state: present
+
+- name: Readonly | Grant SELECT on all Tables in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT
+    type: table
+    objs: ALL_IN_SCHEMA
+    roles: readonly
+    grant_option: yes
+    state: present
+
+- name: Readonly | Grant SELECT on all Sequence in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT
+    type: sequence
+    objs: ALL_IN_SCHEMA
+    roles: readonly
+    grant_option: yes
+    state: present
+
+#ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+- name: Readonly | ALTER DEFAULT PRIVILEGES ON DATABASE on tables in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT
+    objs: TABLES
+    type: default_privs
+    role: readonly
+    grant_option: yes
+    state: present
+
+- name: Readonly | ALTER DEFAULT PRIVILEGES ON DATABASE on sequences in schema public
+  community.postgresql.postgresql_privs:
+    login_host: "{{ DB_HOST }}"
+    login_user: "{{ DB_USER }}"
+    login_password: "{{ DB_PASSWORD }}"
+    login_db: "{{ DB_NAME }}"
+    schema: "{{ DB_SCHEMA }}"
+    privs: SELECT
+    objs: SEQUENCES
+    type: default_privs
+    role: readonly
+    grant_option: yes
+    state: present

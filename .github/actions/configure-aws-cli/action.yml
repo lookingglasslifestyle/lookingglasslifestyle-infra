@@ -1,0 +1,36 @@
+name: "Configure AWS CLI"
+description: "This action configures the AWS CLI with the necessary credentials and region."
+
+inputs:
+  secret_input:
+    description: "The IAM Role ARN to assume"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get AWS Region name
+      id: _AWS_REGION
+      run: |
+        echo "_AWS_REGION=$(sed -n 's/^_AWS_REGION=//p' Makefile)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume:  ${{ inputs.secret_input }}  #IAM Role ARN
+        role-session-name: ${{ github.event.repository.name }}_${{ github.base_ref}}_${{github.actor}}
+        aws-region: ${{ steps._AWS_REGION.outputs._AWS_REGION }}
+
+    - name: Configure Awscli
+      run: make awscli-ci
+      env:
+        _AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        _AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        _AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      shell: bash
+
+
+
+
+

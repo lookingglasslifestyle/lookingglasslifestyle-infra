@@ -1,0 +1,101 @@
+name: Dev
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+env:
+  _ENV: dev
+
+# These permissions are needed to interact with GitHub's OIDC Token endpoint.
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+  pull-requests: read # This is required for dorny/paths-filter
+
+jobs:
+  set-environment-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - id: environment
+        name: Set environment
+        run: echo "_ENV=${{ env._ENV }}" >> "$GITHUB_OUTPUT"
+    outputs:
+      _ENV: ${{ steps.environment.outputs._ENV }}
+
+  path-filters:
+    needs: set-environment-dev
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: "${{ needs.set-environment-dev.outputs._ENV }}"
+    outputs:
+      terraform_scan: ${{ steps.changes.outputs.terraform_scan }}
+      infra: ${{ steps.changes.outputs.infra }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          list-files: shell
+          filters: .github/filters.yml
+          initial-fetch-depth: "1"
+
+  terraform-scan-dev:
+    needs: [set-environment-dev, path-filters]
+    if: github.event_name == 'pull_request' && needs.path-filters.outputs.terraform_scan == 'true'
+    runs-on: ubuntu-latest
+    environment: "${{ needs.set-environment-dev.outputs._ENV }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Terraform Scan
+        continue-on-error: true
+        run: make terraform-scan
+
+  terraform-plan-dev:
+    needs: [set-environment-dev, path-filters]
+    if: 
+      github.event_name == 'pull_request' && needs.path-filters.outputs.infra == 'true' && always()
+    runs-on: ubuntu-latest
+    environment: "${{ needs.set-environment-dev.outputs._ENV }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & Setup Terraform-Terragrunt
+        uses: ./.github/actions/setup-terraform-and-terragrunt
+
+      - name: Setup AWS
+        uses: ./.github/actions/configure-aws-cli
+        with:
+          secret_input: ${{ secrets['AWS_GITHUB_OIDC_ROLE_ARN'] }}
+
+      - name: Deployment Plan
+        run: make plan
+
+  deploy-dev:
+    needs: [set-environment-dev]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: "${{ needs.set-environment-dev.outputs._ENV }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & Setup Terraform-Terragrunt
+        uses: ./.github/actions/setup-terraform-and-terragrunt
+
+      - name: Setup AWS
+        uses: ./.github/actions/configure-aws-cli
+        with:
+          secret_input: ${{ secrets['AWS_GITHUB_OIDC_ROLE_ARN'] }}
+
+      - name: Deployment Plan
+        run: make plan
+
+      - name: Deploy resources
+        run: make apply-ci

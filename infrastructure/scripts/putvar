@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+SSM_PATH=$(echo "$1" | awk -F "=" '{print $1}')
+KEY=$(echo "$2" | awk -F "=" '{print $1}')
+VALUE=$(echo "$2" | awk -F "=" '{print $2}')
+
+aws configure set cli_follow_urlparam false --profile $_AWS_PROFILE
+
+aws --profile "$_AWS_PROFILE" \
+    --region "$_AWS_REGION" \
+    ssm put-parameter \
+    --name "$SSM_PATH/$KEY" \
+    --value "$VALUE" \
+    --overwrite \
+    --type SecureString \
+    --key-id "alias/aws/ssm" \
+    --output text
+
+aws configure set cli_follow_urlparam true --profile $_AWS_PROFILE
