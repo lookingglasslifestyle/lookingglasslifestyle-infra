@@ -40,5 +40,12 @@ resource "aws_db_instance" "postgresql" {
   skip_final_snapshot    = false
   deletion_protection    = true
   storage_encrypted = true
+  parameter_group_name = aws_db_parameter_group.postgresql_parameter_group.name
+}
 
+# Optional: Create a custom parameter group for PostgreSQL
+resource "aws_db_parameter_group" "postgresql_parameter_group" {
+  name        = "${var.prefix}-parameter-group"
+  family      = "postgres15"  # Choose based on your engine/version
+  description = "Custom parameter group for PostgreSQL 15"
 }

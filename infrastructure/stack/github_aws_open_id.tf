@@ -25,6 +25,8 @@ resource "aws_iam_role_policy_attachment" "github_oidc_policy" {
 
 locals {
   github_repos = [
-    "lookingglasslifestyle/lookingglasslifestyle-infra"
+    "lookingglasslifestyle/lookingglasslifestyle-infra",
+    "lookingglasslifestyle/lookingglasss-back-end",
+    "lookingglasslifestyle/stylistdashboard"
   ]
 }
