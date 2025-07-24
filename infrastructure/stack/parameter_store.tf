@@ -56,7 +56,12 @@ module "ssm_params" {
     "ec2/bastion" = {
       public_ip         = module.ec2_bastion.public_ip,
       security_group_id = module.security_group_bastion.id,
+    },
+
+    "lambda/default" = {
+      private_subnet_ids = jsonencode(module.subnet_ecs.private_subnet_ids)
     }
+
   }
 
   providers = {
