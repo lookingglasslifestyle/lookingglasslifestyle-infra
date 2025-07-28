@@ -117,3 +117,30 @@ module "subnet_db" {
     aws = aws
   }
 }
+
+#------------------------------------------------------------------------------------
+# SUBNET Lambda
+#------------------------------------------------------------------------------------
+module "subnet_lambda" {
+  source = "git::https://github.com/TechHoldingLLC/terraform-aws-subnet.git?ref=v1.0.1"
+
+  name               = "${var.prefix}-lambda"
+  vpc_id             = module.vpc.id
+  availability_zones = module.vpc.availability_zones
+
+  # Private subnets
+  private_route_table_ids = module.vpc.private_route_table_ids
+  private_subnets = [
+    {
+      network = local.subnet_network_prefix
+      cidr_blocks = [
+        "114.0/24",
+        "115.0/24"
+      ]
+    }
+  ]
+
+  providers = {
+    aws = aws
+  }
+}

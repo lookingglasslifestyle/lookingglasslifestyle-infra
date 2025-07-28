@@ -115,3 +115,20 @@ db-users:
 bastion-users:
 	@$(eval BASTION_IP=$(shell make tfoutput | jq ".bastion_public_ip.value"))
 	@cd users/bastion && ansible-playbook  -e "env=$(_ENV) ansible_host=$(BASTION_IP) ansible_ssh_private_key_file=$(ansible_ssh_private_key_file) ansible_user=$(ansible_user)" playbook.yml -i inventory
+
+
+# Lambda Package and Publish
+ZIP_FILES=$(_PREFIX)-dialpad-events-processor.zip
+package:
+	@rm -rf $(ZIP_FILES)
+	@rm -rf postSignupLambda/node_modules
+	@cd postSignupLambda \
+		&& npm install \
+		&& zip -r ../$(_PREFIX)-dialpad-events-processor.zip .
+
+publish:
+	@echo "------ Publishing Lambda Artifacts ------"
+	@for FILE in $$ZIP_FILES; \
+		do echo $$FILE; \
+	    aws s3 cp $$FILE s3://$(_PREFIX)-lambda-artifacts/ --metadata '{"source_code_hash":"$(GITHUB_SHA)"}' --profile $(_AWS_PROFILE); \
+	done
